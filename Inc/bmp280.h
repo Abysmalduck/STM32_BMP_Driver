@@ -132,6 +132,7 @@ private:
 	uint8_t _bmp_addr;
 	I2C_HandleTypeDef* _I2C_PORT;
 
+	int32_t get_t_fine();
 
 public:
 	calibration_data calib_data;
@@ -145,9 +146,11 @@ public:
 
 	HAL_StatusTypeDef reg_config(uint8_t st_time, uint8_t filter, uint8_t SPI_EN);
 
-	HAL_StatusTypeDef update_callibration();
+	void update_callibration();
 
 	float getLastTemp();
+
+	float getLastPressure();
 };
 
 
