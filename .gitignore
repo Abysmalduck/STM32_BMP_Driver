@@ -1,6 +1,8 @@
 *
 
+!*/
+
 !.gitignore
-!./Src/bmp280.cpp
-!./Inc/bmp280.h
+!Src/bmp280.cpp
+!Inc/bmp280.h
 !README.md
