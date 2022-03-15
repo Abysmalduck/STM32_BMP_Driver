@@ -123,35 +123,41 @@ struct calibration_data
 
 //BMP280_driver by tdehtyar
 
-
-
-
 class bmp280_driver
 {
 private:
+	//Address of BMP280
 	uint8_t _bmp_addr;
+	//I2C Handle
 	I2C_HandleTypeDef* _I2C_PORT;
+	//Calibration data
+	calibration_data calib_data;
+
+	HAL_StatusTypeDef read_byte(uint8_t reg_addr, uint8_t* result);
+	HAL_StatusTypeDef write_byte(uint8_t data, uint8_t reg_addr);
+
+	HAL_StatusTypeDef reg_ctrl_meas(uint8_t temp_oversample, uint8_t pessure_oversample, uint8_t mode);
+	HAL_StatusTypeDef reg_config(uint8_t st_time, uint8_t filter, uint8_t SPI_EN);
 
 	int32_t get_t_fine();
 
-public:
-	calibration_data calib_data;
-	bmp280_driver(I2C_HandleTypeDef* I2C_PORT , uint8_t bmp_addr);
-	//function allows read data from bmp280
-	uint8_t read_byte(uint8_t reg_addr);
-	//function allows write data to bmp280
-	HAL_StatusTypeDef write_byte(uint8_t data, uint8_t reg_addr);
-	//config ctrl_meas
-	HAL_StatusTypeDef reg_ctrl_meas(uint8_t temp_oversample, uint8_t pessure_oversample, uint8_t mode);
-
-	HAL_StatusTypeDef reg_config(uint8_t st_time, uint8_t filter, uint8_t SPI_EN);
-
 	void update_callibration();
+
+public:
+
+	bmp280_driver(I2C_HandleTypeDef* I2C_PORT , uint8_t bmp_addr);
+
+	HAL_StatusTypeDef config_stanbytime(uint8_t time);
+	HAL_StatusTypeDef config_filter(uint8_t filter);
+	HAL_StatusTypeDef config_SPI(uint8_t SPI_ON_OFF);
+
+	HAL_StatusTypeDef config_temp_oversample(uint8_t temp_oversample);
+	HAL_StatusTypeDef config_pressure_oversample(uint8_t pressure_oversample);
+	HAL_StatusTypeDef config_mode(uint8_t mode);
 
 	float getLastTemp();
 
 	float getLastPressure();
 };
-
 
 #endif /* INC_BMP280_H_ */
