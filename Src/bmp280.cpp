@@ -48,56 +48,22 @@ HAL_StatusTypeDef bmp280_driver::reg_config(uint8_t st_time, uint8_t filter, uin
 
 void bmp280_driver::update_callibration()
 {
-	uint8_t buffer_lsb;
-	uint8_t buffer_msb;
+	uint16_t buff[12];
 
-	read_byte(BMP280_REG_DIG_T1_lsb, &buffer_lsb);
-	read_byte(BMP280_REG_DIG_T1_msb, &buffer_msb);
-	calib_data.dig_T1 = buffer_msb << 8 | buffer_lsb;
+	HAL_I2C_Mem_Read(_I2C_PORT, _bmp_addr << 1, BMP280_REG_DIG_T1_lsb, I2C_MEMADD_SIZE_8BIT, (uint8_t*)buff, 24, HAL_MAX_DELAY);
 
-	read_byte(BMP280_REG_DIG_T2_lsb, &buffer_lsb);
-	read_byte(BMP280_REG_DIG_T2_msb, &buffer_msb);
-	calib_data.dig_T2 = buffer_msb << 8 | buffer_lsb;
-
-	read_byte(BMP280_REG_DIG_T3_lsb, &buffer_lsb);
-	read_byte(BMP280_REG_DIG_T3_msb, &buffer_msb);
-	calib_data.dig_T3 = buffer_msb << 8 | buffer_lsb;
-
-	read_byte(BMP280_REG_DIG_P1_lsb, &buffer_lsb);
-	read_byte(BMP280_REG_DIG_P1_msb, &buffer_msb);
-	calib_data.dig_P1 = buffer_msb << 8 | buffer_lsb;
-
-	read_byte(BMP280_REG_DIG_P2_lsb, &buffer_lsb);
-	read_byte(BMP280_REG_DIG_P2_msb, &buffer_msb);
-	calib_data.dig_P2 = buffer_msb << 8 | buffer_lsb;
-
-	read_byte(BMP280_REG_DIG_P3_lsb, &buffer_lsb);
-	read_byte(BMP280_REG_DIG_P3_msb, &buffer_msb);
-	calib_data.dig_P3 = buffer_msb << 8 | buffer_lsb;
-
-	read_byte(BMP280_REG_DIG_P4_lsb, &buffer_lsb);
-	read_byte(BMP280_REG_DIG_P4_msb, &buffer_msb);
-	calib_data.dig_P4 = buffer_msb << 8 | buffer_lsb;
-
-	read_byte(BMP280_REG_DIG_P5_lsb, &buffer_lsb);
-	read_byte(BMP280_REG_DIG_P5_msb, &buffer_msb);
-	calib_data.dig_P5 = buffer_msb << 8 | buffer_lsb;
-
-	read_byte(BMP280_REG_DIG_P6_lsb, &buffer_lsb);
-	read_byte(BMP280_REG_DIG_P6_msb, &buffer_msb);
-	calib_data.dig_P6 = buffer_msb << 8 | buffer_lsb;
-
-	read_byte(BMP280_REG_DIG_P7_lsb, &buffer_lsb);
-	read_byte(BMP280_REG_DIG_P7_msb, &buffer_msb);
-	calib_data.dig_P7 = buffer_msb << 8 | buffer_lsb;
-
-	read_byte(BMP280_REG_DIG_P8_lsb, &buffer_lsb);
-	read_byte(BMP280_REG_DIG_P8_msb, &buffer_msb);
-	calib_data.dig_P8 = buffer_msb << 8 | buffer_lsb;
-
-	read_byte(BMP280_REG_DIG_P9_lsb, &buffer_lsb);
-	read_byte(BMP280_REG_DIG_P9_msb, &buffer_msb);
-	calib_data.dig_P9 = buffer_msb << 8 | buffer_lsb;
+	calib_data.dig_T1 = buff[0];
+	calib_data.dig_T2 = buff[1];
+	calib_data.dig_T3 = buff[2];
+	calib_data.dig_P1 = buff[3];
+	calib_data.dig_P2 = buff[4];
+	calib_data.dig_P3 = buff[5];
+	calib_data.dig_P4 = buff[6];
+	calib_data.dig_P5 = buff[7];
+	calib_data.dig_P6 = buff[8];
+	calib_data.dig_P7 = buff[9];
+	calib_data.dig_P8 = buff[10];
+	calib_data.dig_P9 = buff[11];
 }
 
 HAL_StatusTypeDef bmp280_driver::config_stanbytime(uint8_t time)
@@ -196,15 +162,10 @@ HAL_StatusTypeDef bmp280_driver::config_mode(uint8_t mode)
 
 int32_t bmp280_driver::get_t_fine()
 {
-	uint8_t adc_t_xlsb;
-	uint8_t adc_t_lsb;
-	uint8_t adc_t_msb;
+	uint8_t _adc_t[3];
+	HAL_I2C_Mem_Read(_I2C_PORT, _bmp_addr << 1, BMP280_REG_temp_msb, I2C_MEMADD_SIZE_8BIT, _adc_t, 3, HAL_MAX_DELAY);
 
-	read_byte(BMP280_REG_temp_xlsb, &adc_t_xlsb);
-	read_byte(BMP280_REG_temp_lsb, &adc_t_lsb);
-	read_byte(BMP280_REG_temp_msb, &adc_t_msb);
-
-	uint32_t adc_t = adc_t_msb << 12 | adc_t_lsb << 4 | adc_t_xlsb >> 4;
+	uint32_t adc_t = _adc_t[0] << 12 | _adc_t[1] << 4 | _adc_t[2] >> 4;
 
 	double var1 = (((double)adc_t / 16384) - ((double)calib_data.dig_T1 / 1024)) * (double)calib_data.dig_T2;
 	double var2 = (((double)adc_t / 131072 - (double)calib_data.dig_T1 / 8192) * ((double)adc_t / 131072 - (double)calib_data.dig_T1 / 8192));
@@ -217,15 +178,11 @@ int32_t bmp280_driver::get_t_fine()
 
 float bmp280_driver::getLastTemp()
 {
-	uint8_t adc_t_xlsb;
-	uint8_t adc_t_lsb;
-	uint8_t adc_t_msb;
 
-	read_byte(BMP280_REG_temp_xlsb, &adc_t_xlsb);
-	read_byte(BMP280_REG_temp_lsb, &adc_t_lsb);
-	read_byte(BMP280_REG_temp_msb, &adc_t_msb);
+	uint8_t _adc_t[3];
+	HAL_I2C_Mem_Read(_I2C_PORT, _bmp_addr << 1, BMP280_REG_temp_msb, I2C_MEMADD_SIZE_8BIT, _adc_t, 3, HAL_MAX_DELAY);
 
-	uint32_t adc_t = adc_t_msb << 12 | adc_t_lsb << 4 | adc_t_xlsb >> 4;
+	uint32_t adc_t = _adc_t[0] << 12 | _adc_t[1] << 4 | _adc_t[2] >> 4;
 
 	double var1 = (((double)adc_t / 16384) - ((double)calib_data.dig_T1 / 1024)) * (double)calib_data.dig_T2;
 	double var2 = (((double)adc_t / 131072 - (double)calib_data.dig_T1 / 8192) * ((double)adc_t / 131072 - (double)calib_data.dig_T1 / 8192));
@@ -237,15 +194,11 @@ float bmp280_driver::getLastTemp()
 
 float bmp280_driver::getLastPressure()
 {
-	uint8_t adc_p_xlsb;
-	uint8_t adc_p_lsb;
-	uint8_t adc_p_msb;
+	uint8_t _adc_p[3];
 
-	read_byte(BMP280_REG_press_xlsb, &adc_p_xlsb);
-	read_byte(BMP280_REG_press_lsb, &adc_p_lsb);
-	read_byte(BMP280_REG_press_msb, &adc_p_msb);
+	HAL_I2C_Mem_Read(_I2C_PORT, _bmp_addr << 1, BMP280_REG_press_msb, I2C_MEMADD_SIZE_8BIT, _adc_p, 3, HAL_MAX_DELAY);
 
-	uint32_t adc_p = adc_p_msb << 12 | adc_p_lsb << 4 | adc_p_xlsb >> 4;
+	uint32_t adc_p = _adc_p[0] << 12 | _adc_p[1] << 4 | _adc_p[2] >> 4;
 
 	uint32_t t_fine = get_t_fine();
 
