@@ -52,18 +52,13 @@ void bmp280_driver::update_callibration()
 
 	HAL_I2C_Mem_Read(_I2C_PORT, _bmp_addr << 1, BMP280_REG_DIG_T1_lsb, I2C_MEMADD_SIZE_8BIT, (uint8_t*)buff, 24, HAL_MAX_DELAY);
 
-	calib_data.dig_T1 = buff[0];
-	calib_data.dig_T2 = buff[1];
-	calib_data.dig_T3 = buff[2];
-	calib_data.dig_P1 = buff[3];
-	calib_data.dig_P2 = buff[4];
-	calib_data.dig_P3 = buff[5];
-	calib_data.dig_P4 = buff[6];
-	calib_data.dig_P5 = buff[7];
-	calib_data.dig_P6 = buff[8];
-	calib_data.dig_P7 = buff[9];
-	calib_data.dig_P8 = buff[10];
-	calib_data.dig_P9 = buff[11];
+	uint16_t* ptr = (uint16_t*)&calib_data;
+
+	for (uint8_t i = 0; i < 12; i++)
+	{
+		*(ptr + i) = buff[i];
+	}
+	return;
 }
 
 HAL_StatusTypeDef bmp280_driver::config_stanbytime(uint8_t time)
