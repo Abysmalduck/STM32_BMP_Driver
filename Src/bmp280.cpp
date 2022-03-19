@@ -14,7 +14,7 @@ HAL_StatusTypeDef bmp280_driver::read_byte(uint8_t addr, uint8_t* result)
 {
 	uint8_t buff;
 	HAL_StatusTypeDef status;
-	status = HAL_I2C_Mem_Read(_I2C_PORT, _bmp_addr << 1, addr, I2C_MEMADD_SIZE_8BIT, &buff, 1, HAL_MAX_DELAY);
+	status = HAL_I2C_Mem_Read(_I2C_PORT, _bmp_addr << 1, addr, I2C_MEMADD_SIZE_8BIT, &buff, 1, 1);
 
 	*result = buff;
 
@@ -26,7 +26,7 @@ HAL_StatusTypeDef bmp280_driver::write_byte(uint8_t data, uint8_t addr)
 	HAL_StatusTypeDef status;
 	uint8_t buff = data;
 
-	status = HAL_I2C_Mem_Write(_I2C_PORT, _bmp_addr << 1, addr, I2C_MEMADD_SIZE_8BIT, &buff, 1, HAL_MAX_DELAY);
+	status = HAL_I2C_Mem_Write(_I2C_PORT, _bmp_addr << 1, addr, I2C_MEMADD_SIZE_8BIT, &buff, 1, 1);
 	return status;
 }
 
@@ -158,7 +158,7 @@ HAL_StatusTypeDef bmp280_driver::config_mode(uint8_t mode)
 int32_t bmp280_driver::get_t_fine()
 {
 	uint8_t _adc_t[3];
-	HAL_I2C_Mem_Read(_I2C_PORT, _bmp_addr << 1, BMP280_REG_temp_msb, I2C_MEMADD_SIZE_8BIT, _adc_t, 3, HAL_MAX_DELAY);
+	HAL_I2C_Mem_Read(_I2C_PORT, _bmp_addr << 1, BMP280_REG_temp_msb, I2C_MEMADD_SIZE_8BIT, _adc_t, 3, 1);
 
 	uint32_t adc_t = _adc_t[0] << 12 | _adc_t[1] << 4 | _adc_t[2] >> 4;
 
@@ -174,8 +174,11 @@ int32_t bmp280_driver::get_t_fine()
 float bmp280_driver::getLastTemp()
 {
 
-	uint8_t _adc_t[3];
-	HAL_I2C_Mem_Read(_I2C_PORT, _bmp_addr << 1, BMP280_REG_temp_msb, I2C_MEMADD_SIZE_8BIT, _adc_t, 3, HAL_MAX_DELAY);
+	uint8_t _adc_t[3] = {0, 0, 0};
+	HAL_StatusTypeDef status;
+
+	status = HAL_I2C_Mem_Read(_I2C_PORT, _bmp_addr << 1, BMP280_REG_temp_msb, I2C_MEMADD_SIZE_8BIT, _adc_t, 3, 1);
+	if (status != HAL_OK) return -1;
 
 	uint32_t adc_t = _adc_t[0] << 12 | _adc_t[1] << 4 | _adc_t[2] >> 4;
 
@@ -189,9 +192,13 @@ float bmp280_driver::getLastTemp()
 
 float bmp280_driver::getLastPressure()
 {
-	uint8_t _adc_p[3];
+	uint8_t _adc_p[3] = {0, 0, 0};
 
-	HAL_I2C_Mem_Read(_I2C_PORT, _bmp_addr << 1, BMP280_REG_press_msb, I2C_MEMADD_SIZE_8BIT, _adc_p, 3, HAL_MAX_DELAY);
+	HAL_StatusTypeDef status;
+
+	status = HAL_I2C_Mem_Read(_I2C_PORT, _bmp_addr << 1, BMP280_REG_press_msb, I2C_MEMADD_SIZE_8BIT, _adc_p, 3, 1);
+
+	if (status != HAL_OK) return -1;
 
 	uint32_t adc_p = _adc_p[0] << 12 | _adc_p[1] << 4 | _adc_p[2] >> 4;
 
